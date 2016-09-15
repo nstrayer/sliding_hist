@@ -42,9 +42,10 @@ function sliding_hist() {
               width  = chartWidth - margin.left - margin.right,
               height = chartHeight - margin.top - margin.bottom;
 
+          var dataRange = d3.extent(data)
           var x = d3.scaleLinear()
               .range([0, width])
-              .domain(d3.extent(data));
+              .domain(dataRange);
 
           var y = d3.scaleLinear()
               .range([height, 0])
@@ -80,6 +81,88 @@ function sliding_hist() {
                   .attr("dy", ".71em")
                   .style("text-anchor", "end")
                   .text("# in x +- binwidth/2");
+
+          var focus = svg.append("g")
+              .attr("class", "focus")
+              .style("display", "none");
+
+          focus.append("circle")
+            .attr("r", 4.5)
+            .style("fill", "none")
+            .style("stroke", "black");
+
+          var drop_line = focus.append("line")
+              .attr("x1", 0)
+              .attr("y1", 0)
+              .attr("x2", 0)
+              .attr("y2", 0)
+              .attr("stroke","black");
+
+          var interval_line = svg.append("g")
+            .attr("class", "interval_line")
+            .style("display", "none");
+
+        var interval_width = x(dataRange[0] + binWidth/2)
+
+        interval_line.append("line")
+            .attr("class", "wide_line")
+            .attr("x1", interval_width)
+            .attr("y1", -10)
+            .attr("x2", -interval_width)
+            .attr("y2", -10)
+            .attr("stroke","black")
+            .attr("stroke-width","1px");
+
+        interval_line.append("line")
+            .attr("class", "left_line")
+            .attr("x1", -interval_width)
+            .attr("y1", 0)
+            .attr("x2", -interval_width)
+            .attr("y2", -10)
+            .attr("stroke","black")
+            .attr("stroke-width","1px");
+
+        interval_line.append("line")
+            .attr("class", "right_line")
+            .attr("x1", interval_width)
+            .attr("y1", 0)
+            .attr("x2", interval_width)
+            .attr("y2", -10)
+            .attr("stroke","black")
+            .attr("stroke-width","1px");
+
+          focus.append("text")
+            .attr("x", 9)
+            .attr("dy", ".35em");
+
+          svg.append("rect")
+             .attr("class", "overlay")
+             .attr("width", width)
+             .attr("height", height)
+             .style("fill","none")
+             .style("pointer-events", "all")
+             .on("mouseover", function() { focus.style("display", null); })
+             .on("mouseout",  function() { focus.style("display", "none"); })
+             .on("mousemove", mousemove);
+
+           var bisectX = d3.bisector(function(d) { return d.center; }).left;
+
+           function mousemove() {
+              var x0 = x.invert(d3.mouse(this)[0]),
+                  i = bisectX(hist_data, x0, 1),
+                  d0 = hist_data[i - 1],
+                  d1 = hist_data[i],
+                  d = x0 - d0.center > d1.center - x0 ? d1 : d0;
+              focus.attr("transform", "translate(" + x(d.center) + "," + y(d.in_bin) + ")");
+              drop_line
+                .attr("y1", 4.5)
+                .attr("y2", (height - y(d.in_bin) -10));
+
+              interval_line.style("display", "block")
+              .attr("transform", "translate(" + x(d.center) + "," + (height ) + ")");
+
+              focus.select("text").text(d.in_bin);
+            }
       })
 
     }
