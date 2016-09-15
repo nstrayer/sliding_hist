@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis--x path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+    <div id = "chart"></div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="sliding_hist.js"></script>
+
+<script>
+
+//Function to generate vector of normals.
+var randomNormalArray = (n, mu, variance) => [...new Array(n)]
+    .map((_, i) => d3.randomNormal(mu, variance)());
+
+//Generate our data
+var data = randomNormalArray(1000, 100, 10)
+
+var slidey = sliding_hist()
+    .height(500)
+    .width(800)
+    .binWidth(10);
+
+d3.select("#chart")
+      .datum(data)
+      .call(slidey);
+
+
+</script>
